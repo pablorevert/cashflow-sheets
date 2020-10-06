@@ -90,12 +90,24 @@ class CategoriesSorter {
   }
   
   sortNumberOf(categories) {
-    for(var l = categories.length; l > 0; l--) {
-      var key = keyOf(categories.slice(0, l));
+    for(var l = categories.length-1; l > 0; l--) {
+      var key = this.keyOf(categories.slice(1, l));
       var sortNumber = this.sortNumbers.get(key)
-      if (key != null)
-        return key;
+      var keys = Array.from(this.sortNumbers);
+      if (sortNumber != null)
+        return sortNumber;
     }
     return 0;
+  }
+  
+  compare(a,b) {
+    var numberA = this.sortNumberOf(a.categories);
+    var numberB = this.sortNumberOf(b.categories);
+    if (numberA < numberB)
+      return -1;
+    else if (numberA > numberB)
+      return 1;
+    else
+      return compareStrings(a.categories.join("|"), b.categories.join("|"));
   }
 }

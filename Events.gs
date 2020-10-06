@@ -12,6 +12,7 @@ class Event {
         currency: new CurrencyType({nullable:false}), 
         settlement: new NumberType({nullable:false}), 
         invoice_date: new DateType({nullable:false}), 
+        invoice_number: new StringType({nullable:true}), 
         settlement_date: new DateType({nullable:false}), 
         state: new StringType({nullable:false}), 
         paymentDelay: new NumberType({nullable:true}), 
@@ -40,6 +41,7 @@ class Event {
       this.currency = data.currency;
       this.settlement = data.settlement;
       this.invoice_date = data.invoice_date;
+      this.invoice_number = data.invoice_number;
       this.settlement_date = data.settlement_date;
       this.state = data.state;
       this.paymentDelay = data.paymentDelay;
@@ -71,6 +73,7 @@ class Event {
       this.currency,
       this.settlement,
       this.invoice_date,
+      this.invoice_number,
       this.settlement_date,
       this.state,
       this.paymentDelay,
@@ -150,6 +153,34 @@ class Event {
     //DB/CR aplicado a ganancias
     this.tryAddMovement(data, movs, "refund_db_cr_wht", scenario, this.id, taxInfo.refund_db_cr_wht.categories, taxInfo.refund_db_cr_wht.date, new SingleQuantity(this.currency, -taxInfo.db_cr.amount), taxInfo.db_cr.comment);
 
+    var comment = `${this.detail}\n`;
+
+    comment += `   - Estado: ${this.state.toLocaleUpperCase()}\n`;
+    
+    if (this.type == Event.TYPES.SELL && this.invoice_number != null && this.invoice_number.trim() != "") 
+        comment += `   - Factura ${this.invoice_number}\n`;
+    
+    if (this.type == Event.TYPES.SELL && this.invoice_number != null) 
+        comment += `   - F. Emisión: ${this.invoice_date.toLocaleDateString("es-AR")}\n`;
+  
+    if (this.vat != 0 && this.amount != 0)
+      comment += `   - Monto: ${this.currency} ${formatNumber(this.amount,2)} + ${formatNumber(this.vat,2)}\n`;
+    else if (this.amount != 0)
+      comment += `   - Monto: ${this.currency} ${formatNumber(this.amount,2)}\n`;
+    
+    if (this.fee != 0)
+        comment += `   - Comisión: ${this.currency} ${formatNumber(this.fee,2)} ${this.fee_vat != 0 ? ' + ' + formatNumber(this.fee_vat,2) : ''}\n`
+  
+    if (this.ret_per_vat + this.ret_per_iibb + this.ret_per_wht + this.ret_per_suss != 0)
+        comment += `   - Retenciones: ${this.currency} ${formatNumber(this.ret_per_vat + this.ret_per_iibb + this.ret_per_wht + this.ret_per_suss,2)}\n`
+
+    comment += `  LIQUIDACIÓN: ${this.currency} ${formatNumber(this.settlement,2)} el ${this.settlement_date.toLocaleDateString("es-AR")}\n`; 
+
+    if (data.settlement != "N/A")
+      data.settlement.comment = comment;
+    else
+      Logger.log(`WARNING: settlement N/A for id ${this.id}`);
+  
     return movs;    
   }
   

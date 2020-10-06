@@ -1,15 +1,15 @@
 var format = {
   firstRows: [
-    {row:  1, background: '#000000', foreground: '#ffffff', fontSize: 11, "bold": true},
-    {row:  2, background: '#808080', foreground: '#ffffff', fontSize: 11, "bold": false},
-    {row:  3, background: '#808080', foreground: '#ffffff', fontSize: 10, "bold": false},
-    {row:  4, background: '#000000', foreground: '#ffffff', fontSize: 11, "bold": true}
+    {row:  1, background: '#000000', foreground: '#ffffff', fontSize: 9, "bold": true},
+    {row:  2, background: '#808080', foreground: '#ffffff', fontSize: 9, "bold": false},
+    {row:  3, background: '#808080', foreground: '#ffffff', fontSize: 9, "bold": false},
+    {row:  4, background: '#000000', foreground: '#ffffff', fontSize: 9, "bold": true}
     ],
   categories: [
-    {level:  1, background: '#101010', foreground: '#ffffff', fontSize: 11, "bold": true},
-    {level:  2, background: '#303030', foreground: '#ffffff', fontSize: 11, "bold": true},
-    {level:  3, background: '#606060', foreground: '#ffffff', fontSize: 10, "bold": true},
-    {level:  4, background: '#a0a0a0', foreground: '#000000', fontSize: 10, "bold": false},
+    {level:  1, background: '#101010', foreground: '#ffffff', fontSize: 9, "bold": true},
+    {level:  2, background: '#303030', foreground: '#ffffff', fontSize: 9, "bold": true},
+    {level:  3, background: '#606060', foreground: '#ffffff', fontSize: 9, "bold": true},
+    {level:  4, background: '#a0a0a0', foreground: '#000000', fontSize: 9, "bold": false},
     {level:  5, background: '#a0a0a0', foreground: '#000000', fontSize: 9, "bold": true},
     {level:  6, background: '#b0b0b0', foreground: '#000000', fontSize: 8, "bold": true},
     {level:  7, background: '#c0c0c0', foreground: '#000000', fontSize:  8, "bold": true},

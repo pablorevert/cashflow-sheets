@@ -338,7 +338,6 @@ class TaxManager {
   
     taxInfo.refund_db_cr_wht = {date: this.dateFrom(invoice_date, settlement_date, this.taxes.wht.period, this.retentions.wht.period_override), sign: 1, comment: null, categories: ["Egresos", "Impuestos", "Ganancias", "Reintegro DB/CR"]};
   
-  
     return taxInfo;
   }
 }

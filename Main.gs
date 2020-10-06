@@ -26,7 +26,7 @@ function buildBucketManager(lastBalance, weeks, months, years, today) {
   //Lunes pasado
   var lastMonday = addDays(today, today.getDay() == 0 ? -6 : -today.getDay() + 1);
   //Primera Semana
-  var weekStart = addDays(lastMonday, weeks * 7);
+  var weekStart = addDays(lastMonday, weeks * 7 - 2);
   //Acomodo la fecha para siempre tener un saldo anterior
   if (lastMonday.getTime() == today.getTime())
     lastMonday = addDays(lastMonday, -1);
@@ -65,7 +65,11 @@ function buildBucketManager(lastBalance, weeks, months, years, today) {
     var to = addDays(d, 6);
     if (to.getTime() >= addDays(monthStart, -1))
        to = addDays(monthStart, -1);
-    buckets.add(new Bucket(d, to, `Semana ${i++}`));
+    if (d.getTime() == to.getTime())
+      var name = /*`Semana ${i++}\n*/ `${days[d.getDay()] + " " + d.getDate()}`;
+    else 
+      var name = /*`Semana ${i++}\n*/ `${days[d.getDay()] + " " + d.getDate()} a ${days[to.getDay()] + " " + to.getDate()}`;
+    buckets.add(new Bucket(d, to, name));
   }
 
   for(var d = monthStart; d.getTime() < monthEnd.getTime(); d = addMonths(d, 1)) {
@@ -108,11 +112,12 @@ function readData() {
   data.previous_balance = this.last(filtered);
   
   //Calculo los buckets
-  data.bucket_manager = buildBucketManager(data.yesterday_balance.date, 2, 3, 1, data.date_today);
+  data.bucket_manager = buildBucketManager(data.yesterday_balance.date, 2, 5, 0, data.date_today);
   
   //Leo las entradas y los eventos
   readTable(data, "Proyectos", "A1:Z300", () => new ProjectEntry(data.customers), x => x.init(), "projects", "entries");
-  //readTable(data, "Mantenimientos", "A1:Z300", () => new Maitenance(data.customers), x => x.init(), "maitenance", "entries");
+  readTable(data, "Mantenimientos", "A1:Z300", () => new MaitenanceEntry(data.customers), x => x.init(), "maitenance", "entries");
+  readTable(data, "Salarios", "A1:Z300", () => new SalaryEntry(), x => x.init(), "salaries", "entries");
   
   readTable(data, "Pendientes", "A2:W1000", () => new Event(), x => x.init(), "events");
   readTable(data, "Facturados", "A2:W1000", () => new Event(), x => x.init(), "events");
@@ -139,6 +144,9 @@ function readData() {
                    },
                    []
               );
+
+  data.all_movs.sort((a,b) => data.categories_sorter.compare(a,b));
+
   return data;
 }
 

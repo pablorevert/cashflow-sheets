@@ -7,6 +7,11 @@ function isEmpty(val) {
            || val.toString().trim() == "";
 }
 
+function formatNumber(number, decimals) {
+  var base = 10^decimals;
+  return Math.round((number * base) / base).toLocaleString("es-ES",{minimumFractionDigits:0, maximumFractionDigits: decimals, useGrouping: true});
+}
+
 function compareStrings(a,b) {
   if (a < b)
     return -1;

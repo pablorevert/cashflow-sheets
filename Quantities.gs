@@ -81,7 +81,7 @@ class SingleQuantity {
   }
   
   toString() {
-    return this.unit + " " + (Math.round(this.quantity * 100) / 100).toLocaleString("es-ES",{minimumFractionDigits:0, maximumFractionDigits: 0, useGrouping: true});
+    return this.unit + " " + formatNumber(quantity,2);
   }
 
   add(quantity) {
