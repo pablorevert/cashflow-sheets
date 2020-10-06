@@ -8,6 +8,7 @@ class Event {
         cat2: new StringType({nullable:false}), 
         restCategories: new StringType({nullable:false}), 
         detail: new StringType({nullable:true}),
+        origin: new StringType({nullable:false}),
         currency: new CurrencyType({nullable:false}), 
         settlement: new NumberType({nullable:false}), 
         invoice_date: new DateType({nullable:false}), 
@@ -20,7 +21,6 @@ class Event {
 		vat: new NumberType({nullable:true}), 
 		fee: new NumberType({nullable:true}), 
 		fee_vat: new NumberType({nullable:true}), 
-		ret_per_currency: new CurrencyType({nullable:true}), 
 		ret_per_vat: new NumberType({nullable:true}), 
 		ret_per_iibb: new NumberType({nullable:true}), 
 		ret_per_wht: new NumberType({nullable:true}), 
@@ -36,6 +36,7 @@ class Event {
       this.cat2 = data.cat2;
       this.detail = data.detail;
       this.restCategories = data.restCategories;
+      this.origin = data.origin;
       this.currency = data.currency;
       this.settlement = data.settlement;
       this.invoice_date = data.invoice_date;
@@ -48,7 +49,6 @@ class Event {
       this.vat = data.vat;
       this.fee = data.fee;
       this.fee_vat = data.fee_vat;
-      this.ret_per_currency = data.ret_per_currency;
       this.ret_per_vat = data.ret_per_vat;
       this.ret_per_iibb = data.ret_per_iibb;
       this.ret_per_wht = data.ret_per_wht;
@@ -67,6 +67,7 @@ class Event {
       this.cat2,
       this.restCategories,
       this.detail,
+      this.origin,
       this.currency,
       this.settlement,
       this.invoice_date,
@@ -79,7 +80,6 @@ class Event {
       this.vat,
       this.fee,
       this.fee_vat,
-      this.ret_per_currency,
       this.ret_per_vat,
       this.ret_per_iibb,
       this.ret_per_wht,
@@ -114,14 +114,14 @@ class Event {
     {
       var days_to_settlement = dateDiff(this.invoice_date, this.settlement_date, DATE_UNITS.days);
       invoice_date = today;
-      settlement_date = dateAdd(invoice_date, days_to_settlement);
+      settlement_date = addDays(invoice_date, days_to_settlement);
     }
     else if (this.state != Event.STATES.SETTLED
              && settlement_date.getTime() < today.getTime()) {
          settlement_date = today;
     }
-    
-    var taxInfo = taxManager.getTaxInfo(this.type, invoice_date, settlement_date);
+
+    var taxInfo = taxManager.getTaxInfo(this.type, this.origin, categories, this.detail, invoice_date, settlement_date, this.amount, this.settlement);
 
     if (taxInfo.settlement.date.getTime() == today.getTime() && this.state != Event.STATES.SETTLED)
          taxInfo.settlement.date = addHours(taxInfo.settlement.date, 12);
@@ -132,7 +132,6 @@ class Event {
     //IMPUESTOS
     //IVA
     this.tryAddMovement(data, movs, "vat", scenario, this.id, taxInfo.vat.categories, taxInfo.vat.date, new SingleQuantity(this.currency, this.vat * taxInfo.vat.sign), taxInfo.vat.comment);
-    /*
     //IIBB
     this.tryAddMovement(data, movs, "iibb", scenario, this.id, taxInfo.iibb.categories, taxInfo.iibb.date, new SingleQuantity(this.currency, taxInfo.iibb.amount), taxInfo.iibb.comment);
     //DB/CR
@@ -148,12 +147,14 @@ class Event {
     this.tryAddMovement(data, movs, "ret_per_wht", scenario, this.id, taxInfo.ret_per_wht.categories, taxInfo.ret_per_wht.date, new SingleQuantity(this.currency, this.ret_per_wht * taxInfo.ret_per_wht.sign), taxInfo.ret_per_wht.comment);
     //SUSS
     this.tryAddMovement(data, movs, "ret_per_suss", scenario, this.id, taxInfo.ret_per_suss.categories, taxInfo.ret_per_suss.date, new SingleQuantity(this.currency, this.ret_per_suss * taxInfo.ret_per_suss.sign), taxInfo.ret_per_suss.comment);
-    */
+    //DB/CR aplicado a ganancias
+    this.tryAddMovement(data, movs, "refund_db_cr_wht", scenario, this.id, taxInfo.refund_db_cr_wht.categories, taxInfo.refund_db_cr_wht.date, new SingleQuantity(this.currency, -taxInfo.db_cr.amount), taxInfo.db_cr.comment);
+
     return movs;    
   }
   
   tryAddMovement(data, movs, label, scenario, id, categories, date, amount, comment) {
-    if (amount != 0) {
+    if (Math.abs(amount.quantity) > 0.01) {
       var mov = new Movement(scenario, id, categories, date, amount, comment);
       data[label] = mov;
       movs.push(mov);
@@ -164,7 +165,7 @@ class Event {
   }
   
   isPending() {
-    return [Event.STATES.BILLED, Event.STATES.SETTLED].indexOf(this.state) != -1;
+    return [Event.STATES.BILLED, Event.STATES.SETTLED, Event.STATES.CANCELLED].indexOf(this.state) == -1;
   }
   
   getScenario() {
@@ -193,12 +194,10 @@ Event.formatRows = function(sheet, row, numRows) {
     sheet.getRange(row, 1, numRows).setFontColor(Event.FORMATS.id_color);
     sheet.getRange(row, 2, numRows, 22).setFontColor(Event.FORMATS.normal_color);
 
-    sheet.getRange(row, 9, numRows, 2).setHorizontalAlignment('center');
-    sheet.getRange(row, 12, numRows, 3).setHorizontalAlignment('center');
-    sheet.getRange(row, 19, numRows).setHorizontalAlignment('center');
-    sheet.getRange(row,8, numRows).setNumberFormat(Event.FORMATS.number_format);
-    sheet.getRange(row,15, numRows,4).setNumberFormat(Event.FORMATS.number_format);
-    sheet.getRange(row,20, numRows,4).setNumberFormat(Event.FORMATS.number_format);
+    sheet.getRange(row, 10, numRows, 2).setHorizontalAlignment('center');
+    sheet.getRange(row, 13, numRows, 3).setHorizontalAlignment('center');
+    sheet.getRange(row,9, numRows).setNumberFormat(Event.FORMATS.number_format);
+    sheet.getRange(row,16, numRows,8).setNumberFormat(Event.FORMATS.number_format);
 
   sheet.getRange(row, 2, numRows)
          .setDataValidation(
@@ -213,11 +212,19 @@ Event.formatRows = function(sheet, row, numRows) {
            SpreadsheetApp.newDataValidation()
              .setAllowInvalid(false)
              //.setHelpText('Seleccione una de las opciones por favor')
+             .requireValueInList(Object.values(Event.ORIGINS), true)
+             .build());
+
+  sheet.getRange(row, 8, numRows)
+         .setDataValidation(
+           SpreadsheetApp.newDataValidation()
+             .setAllowInvalid(false)
+             //.setHelpText('Seleccione una de las opciones por favor')
              .requireValueInList(Object.values(CURRENCY.values), true)
              .build());
     
     
-    sheet.getRange(row, 11, numRows)
+    sheet.getRange(row, 12, numRows)
          .setDataValidation(
            SpreadsheetApp.newDataValidation()
              .setAllowInvalid(false)
@@ -225,6 +232,11 @@ Event.formatRows = function(sheet, row, numRows) {
              .requireValueInList(Object.values(Event.STATES), true)
              .build());  
   }
+
+Event.ORIGINS = {
+  LOCAL: "Argentina",
+  FOREIGN: "Exterior"
+}
 
 Event.TYPES = {
       SELL: "Venta", 

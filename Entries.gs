@@ -59,6 +59,7 @@ class ProjectEntry extends BaseEntry {
         cat2: "Proyectos",
         restCategories: `${this.customer} | ${this.project}`, 
         detail: this.milestone,
+        origin: this.Customer != null ? (this.Customer.country.toLowerCase() == "argentina" ? "Argentina" : "Exterior") : "Argentina",
         currency: taxDetail.settled.amount.unit, 
         settlement: taxDetail.settled.amount.quantity, 
         invoice_date: this.invoice_date, 
@@ -71,7 +72,6 @@ class ProjectEntry extends BaseEntry {
 		vat: taxDetail.getVatAmount(), 
 		fee: taxDetail.getFeeAmount(), 
 		fee_vat: taxDetail.getFeeVatAmount(), 
-		ret_per_currency: taxDetail.getRetentionsCurrency(), 
 		ret_per_vat: taxDetail.getRetentionVat(), 
 		ret_per_iibb: taxDetail.getRetentionIibb(), 
 		ret_per_wht:  taxDetail.getRetentionWht(), 
@@ -93,6 +93,8 @@ class ProjectEntry extends BaseEntry {
         return Event.STATES.UNLIKELY;
       else if (this.state == ProjectEntry.STATES.CANCELLED)
         return Event.STATES.CANCELLED;
+      else
+        throw `Proyecto '${this.id}' con estado inválido ${this.state}`;
   }
 }
       

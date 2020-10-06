@@ -130,7 +130,7 @@ function readData() {
   
   data.all_movs =
               data
-                .events
+                .all_events
                 .filter(e => e.state != Event.STATES.CANCELLED)
                 .reduce(
                    (acum, event) => {

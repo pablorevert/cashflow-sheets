@@ -315,13 +315,30 @@ class TaxManager {
     }
   }
   
-  getTaxInfo(type, invoice_date, settlement_date) {
+  getTaxInfo(type, origin, categories, description, invoice_date, settlement_date, amount, settlement) {
     var taxInfo = {};
+    var base = { amount: amount, settled: { amount: settlement } };
+    var name = `- ${description} (${categories.slice(1).join(", ")})`;
     
-    taxInfo.settlement = {date: settlement_date, sign: type == Event.TYPES.SELL ? 1 : -1, comment: type};
-    taxInfo.vat = {date: this.dateFrom(invoice_date, settlement_date, this.taxes.vat.period), sign: type == Event.TYPES.SELL ? -1 : 1, comment: null, categories: ["Egresos", "Impuestos", "IVA", type == Event.TYPES.SELL ? "IVA Ventas" : "IVA Compras"]};
+    taxInfo.settlement = {date: settlement_date, sign: type == Event.TYPES.SELL ? 1 : -1, comment: null};
+  
+    taxInfo.vat = {date: this.dateFrom(invoice_date, settlement_date, this.taxes.vat.period), sign: type == Event.TYPES.SELL ? -1 : 1, comment: name, categories: ["Egresos", "Impuestos", "IVA", type == Event.TYPES.SELL ? "IVA Ventas" : "IVA Compras"]};
+  
+    taxInfo.iibb = {date: this.dateFrom(invoice_date, settlement_date, this.taxes.iibb.period), comment: name, categories: ["Egresos", "Impuestos", "IIBB", "Impuesto"],
+                    amount: (type == Event.TYPES.SELL && origin == Event.ORIGINS.LOCAL) ? -this.getValue(base, this.taxes.iibb.base) * this.taxes.iibb.ratio : 0 };
+  
+    taxInfo.db_cr = {date: this.dateFrom(invoice_date, settlement_date, this.taxes.db_cr.period), comment: null, categories: ["Egresos", "Impuestos", "DB/CR", "Impuesto"],
+                    amount: -this.getValue(base, this.taxes.db_cr.base) * this.taxes.db_cr.ratio };
     
-    
+    taxInfo.fee_vat = {date: this.dateFrom(invoice_date, settlement_date, this.taxes.vat.period, this.retentions.vat.period_override), sign: 1, comment: name, categories: ["Egresos", "Impuestos", "IVA", "IVA Compras"]};
+    taxInfo.ret_per_vat = {date: this.dateFrom(invoice_date, settlement_date, this.taxes.vat.period, this.retentions.vat.period_override), sign: 1, comment: name, categories: ["Egresos", "Impuestos", "IVA", "Retenciones/Percepciones"]};
+    taxInfo.ret_per_iibb= {date: this.dateFrom(invoice_date, settlement_date, this.taxes.iibb.period, this.retentions.iibb.period_override), sign: 1, comment: name, categories: ["Egresos", "Impuestos", "IIBB", "Retenciones/Percepciones"]};
+    taxInfo.ret_per_wht = {date: this.dateFrom(invoice_date, settlement_date, this.taxes.wht.period, this.retentions.wht.period_override), sign: 1, comment: null, categories: ["Egresos", "Impuestos", "Ganancias", "Retenciones/Percepciones"]};
+    taxInfo.ret_per_suss = {date: this.dateFrom(invoice_date, settlement_date, {}, this.retentions.suss.period_override), sign: 1, comment: name, categories: ["Egresos", "Salarios", "Cargas Sociales", "Retenciones/Percepciones"]};
+  
+    taxInfo.refund_db_cr_wht = {date: this.dateFrom(invoice_date, settlement_date, this.taxes.wht.period, this.retentions.wht.period_override), sign: 1, comment: null, categories: ["Egresos", "Impuestos", "Ganancias", "Reintegro DB/CR"]};
+  
+  
     return taxInfo;
   }
 }
