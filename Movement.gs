@@ -62,8 +62,9 @@ class CategoryLine {
 }
 
 class Scenario {
-  constructor(buckets, getKey, getValue, aggregate) {
+  constructor(buckets, balances, getKey, getValue, aggregate) {
     this.buckets = buckets;
+    this.balances = balances;
     this.getKey = getKey;
     this.getValue = getValue;
     this.aggregate = aggregate;

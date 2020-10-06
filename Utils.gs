@@ -150,6 +150,12 @@ function addDays(date, days) {
   return result;
 }
 
+function addHours(date, hours) {
+  var result = new Date(date);
+  result.setHours(result.getHours() + hours);
+  return result;
+}
+
 function addMonths(date, months) {
   var result = new Date(date);
   var day = result.getDate();

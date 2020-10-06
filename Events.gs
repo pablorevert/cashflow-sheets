@@ -124,7 +124,7 @@ class Event {
     var taxInfo = taxManager.getTaxInfo(this.type, invoice_date, settlement_date);
 
     if (taxInfo.settlement.date.getTime() == today.getTime() && this.state != Event.STATES.SETTLED)
-         taxInfo.settlement.date = addDays(taxInfo.settlement.date, 0.5);
+         taxInfo.settlement.date = addHours(taxInfo.settlement.date, 12);
         
     //Movimiento liquidado
     this.tryAddMovement(data, movs, "settlement", scenario, this.id, categories, taxInfo.settlement.date, new SingleQuantity(this.currency, this.settlement * taxInfo.settlement.sign), taxInfo.settlement.comment);

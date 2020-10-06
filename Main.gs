@@ -52,7 +52,7 @@ function buildBucketManager(lastBalance, weeks, months, years, today) {
   }
 
   buckets.add(new Bucket(today, addDays(today, 0.25), "Hoy Liq."));
-  buckets.add(new Bucket(addDays(today, 0.25), addDays(today, 0.99), "Hoy Pend."));
+  buckets.add(new Bucket(addHours(today, 6), addHours(today, 23), "Hoy Pend."));
 
   for(var d = addDays(today, 1); d.getTime() < weekStart.getTime(); d = addDays(d, 1)) {
     buckets.add(new Bucket(d, d, (d.getDate() != 1 ? `${days[d.getDay()] + " " + d.getDate()}` : `${getMonthName(d)}\n${days[d.getDay()] + " " + d.getDate()}`)));
@@ -143,7 +143,7 @@ function readData() {
 }
 
 function testUpdateCashflow() {
-  updateCashflow(1,1);
+  updateCashflow(false,0);
 }
 
 function createEvents() {
@@ -188,14 +188,31 @@ function archiveEvents() {
 
 function updateCashflow(group, showIndex) {
   
+  if (showIndex == null)
+    showIndex = 2;
   //Leo todos los datos
   var data = readData();
-  //Armo escenarios
+  //Posibilidades
+  var runs = [
+    { states: [Movement.SCENARIOS.CONFIRMED], index: 0},
+    { states: [Movement.SCENARIOS.VERY_LIKELY], index: 1},
+    { states: [Movement.SCENARIOS.PROBABLE], index: 2},
+    { states: [Movement.SCENARIOS.UNLIKELY], index: 3}
+    ];
+  runs.forEach(r => r.name = `Cashflow ${r.states[0]}s`);
 
-  //Dibujo la hoja
-  var scenario = {
-    buckets: data.bucket_manager.buckets,
-    balances: data.balances_by_date
-  };
-  buildNewCashflowSheet(showIndex,"CF", scenario, group);
+  //Armo escenarios
+  var scenario = new Scenario(data.bucket_manager.buckets, 
+                              data.balances_by_date,
+                              m => data.bucket_manager.getName(m.date), 
+                              m => m.amount, 
+                              (acum, m) => acum != null ? {"ARS": acum.ARS.add(FINANCE.convert(m, "ARS")), "Real": acum.Real.add(m)} : {"ARS": FINANCE.convert(m, "ARS"), "Real": m});
+  
+  //Armo esenarios y dibujo las hojas
+  for(var i = 0; i <= showIndex && i < runs.length; i++) {
+    var run = runs[i];
+    var movs = data.all_movs.filter(m => run.states.indexOf(m.scenario) != -1);
+    movs.forEach(m => scenario.add(m));
+    buildNewCashflowSheet(run.index,run.name, scenario, group);
+  }
 }

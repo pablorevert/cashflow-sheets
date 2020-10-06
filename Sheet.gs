@@ -51,13 +51,45 @@ function buildNewCashflowSheet(sheetIndex, name, scenario, group) {
   sheet.getRange(3,3,1,colTitles.length-1).setFormula('=IF(C2<>0;C2-C4;"")');
  
   //Reelleno el contenido
-  /*
   var values = scenario.asMatrix(x => x.ARS.quantity);
   sheet.getRange(5,1,values.length - 1, values[0].length).setValues(values.slice(1));
   sheet.getRange(2,2,values.length+2, values[0].length-1).setNumberFormat('#,##0;[Red] (#,##0); -');
   //Limpio los valores de Anterior
   sheet.getRange(5,2,values.length - 1, 1).setValue(0);
-  */
+
+  //Pinto las filas
+  var cols = values[0].length + 1;
+  formatRow(sheet, 1, 1, cols, format.firstRows[0]);
+  formatRow(sheet, 2, 1, cols, format.firstRows[1]);
+  formatRow(sheet, 3, 1, cols, format.firstRows[2]);
+  formatRow(sheet, 4, 1, cols, format.firstRows[3]);
+  
+  for(var i = scenario.categories.length - 1; i >= 0; i--)
+  {
+    var c = scenario.categories[i];
+    //Formateo columna y armo grupos
+    if (c.childrenStart != null)
+    {
+      formatRow(sheet, c.index + 4, 1, cols, format.categories[c.level]);
+      if (group) {
+        var range = (c.childrenStart + 4) + ":" + (c.childrenEnd + 4);
+        sheet.getRange(range).shiftRowGroupDepth(1);
+        if (c.level > 2)
+          sheet.getRowGroup(c.index + 4, 1).collapse();
+      }
+    }
+    else
+       formatRow(sheet, c.index + 4, 1, cols, format.normal);
+    //Agrego los comments
+    for(var key of c.comments.keys())
+    {
+      var comment = c.comments.get(key);
+      var names = scenario.buckets.map(x => x.name);
+      var col = names.indexOf(key) + 2;
+      if (col != 0)
+         sheet.getRange(c.index + 4, col).setNote(comment);
+    }
+  }
 }
 
 function buildCashflowSheet(sheetIndex, name, scenario, group) {
