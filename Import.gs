@@ -5,7 +5,7 @@ function buildObjects(sheetName, range, constructor, initializer) {
   var l = [];
   var errors = [];
   var notes = [];
-  var colors = [];
+  var backs = [];
 
   var maxRows = sheet.getMaxRows() - range.getRow() + 1;
   if (maxRows > 2) {
@@ -15,6 +15,7 @@ function buildObjects(sheetName, range, constructor, initializer) {
     var values = range.getValues();
     var formulas = range.getFormulasR1C1()
                         .map(row => Object.entries(row).filter(c => c[1] != "").map(c => { return {col: parseInt(c[0]) + 1, formula: c[1]}}));
+    var backgrounds = range.getBackgrounds();
 
     //Armo los nombres de propiedades de la clase
     var names = [];
@@ -29,11 +30,12 @@ function buildObjects(sheetName, range, constructor, initializer) {
     {
       var obj = constructor();
       obj.values = values[i];
+      obj.background = backgrounds[i][0];
       obj.formulas = formulas[i];
       var types = obj.METADATA.TYPES;
       if (!PARSER.eof(values[i], names, obj.METADATA.EOF))
       {
-        if (PARSER.parseRecord(sheetName, i, obj, values[i], names, types))
+        if (PARSER.parseRecord(sheetName, i, obj, values[i], names, types, backgrounds[i][0]))
         {
           initializer(obj);
           l.push(obj);
@@ -43,17 +45,17 @@ function buildObjects(sheetName, range, constructor, initializer) {
           errors = errors.concat(PARSER.errors);
         }
         notes.push(PARSER.notes);
-        colors.push(PARSER.colors);
+        backs.push(PARSER.backgrounds);
       }
       else
         break;
     }
 
-    if (notes.length > 0) {
+    /*if (notes.length > 0) {*/
       var dataRange = sheet.getRange(range.getRow() + 2, range.getColumn(), notes.length, notes[0].length);
       dataRange.setNotes(notes);
-      dataRange.setBackgrounds(colors);
-    }
+      dataRange.setBackgrounds(backs);
+    /*}*/
   }
   return {items: l, errors: errors};
 }
@@ -332,6 +334,7 @@ var Parser = function() {
   self.errors = [];
   self.notes = [];
   self.colors = []
+  self.backgrounds = [];
  
   self.isEmpty = function(val) {
     return val == null
@@ -352,11 +355,11 @@ var Parser = function() {
      return true;
   }
   
-  self.parseRecord= function(table, row, obj, values, names, types) {
+  self.parseRecord= function(table, row, obj, values, names, types, background) {
     var isValid = true;
     self.errors = [];
     self.notes = [];
-    self.colors = [];
+    self.backgrounds = [];
     
     for(var i = 0; i < names.length; i++)
     {
@@ -366,26 +369,28 @@ var Parser = function() {
       if (type == null)
       {
         self.errors.push(new Error(table, row, field, "La columna no ha sido definida en la colección de tipos de la clase. Columnas definidas: " + Object.getOwnPropertyNames(types)));
-        self.colors.push("#eebbbb");
+        self.backgrounds.push("#eebbbb");
         self.notes.push("La columna no ha sido definida. Columnas definidas: " + Object.getOwnPropertyNames(types));
         isValid = false;
       }      
       else if (type.isValid(sourceValue)) {
         obj[field] = type.parse(sourceValue);
         self.notes.push("");
-        self.colors.push("#ffffff");
+        self.backgrounds.push(background);
       }
       else
       {
         self.errors.push(new Error(table, row, field, type.lastError));
         self.notes.push(type.lastError);
-        self.colors.push("#eebbbb");
+        self.backgrounds.push("#eebbbb");
         isValid = false;
       }      
     }
 
-    if (!isValid)
-      self.colors = self.colors.map(c => c == "#ffffff" ? "#ffeeee" : c);
+    if (!isValid) {
+      self.backgrounds = self.backgrounds.map(b => b == background ?  "#ffeeee"  : b);
+      self.backgrounds[0] = background;
+    }
     
     return isValid;
   }

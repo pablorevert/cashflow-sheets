@@ -48,6 +48,7 @@ function testColumnOrVectorToArray() {
 function buildObjects(sheetName, range, constructor, initializer) {
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
   var values = sheet.getRange(range).getValues();
+  var backgrounds = sheet.getRange(range).getBackgrounds();
 
   var l = [];
   var errors = [];
@@ -67,7 +68,7 @@ function buildObjects(sheetName, range, constructor, initializer) {
     var types = obj.TYPES;
     if (!PARSER.eof(values[i], names, types))
     {
-      if (PARSER.parseRecord(sheetName, i, obj, values[i], names, types))
+      if (PARSER.parseRecord(sheetName, i, obj, values[i], names, types, backgrounds[i][0]))
       {
         initializer(obj);
         l.push(obj);

@@ -74,3 +74,14 @@ function Collapse1() {
 
 function FormatRow() {
 };
+
+function PartialFontColor() {
+  var spreadsheet = SpreadsheetApp.getActive();
+  spreadsheet.getRange('E10').activate();
+  spreadsheet.getCurrentCell().setRichTextValue(SpreadsheetApp.newRichTextValue()
+  .setText('Mantenimiento | Francisco Villa')
+  .setTextStyle(0, 16, SpreadsheetApp.newTextStyle()
+  .setForegroundColor('#6aa84f')
+  .build())
+  .build());
+};

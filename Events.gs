@@ -220,15 +220,22 @@ class Event {
   }
 }
 
-Event.formatRows = function(sheet, row, numRows) {
-    
+Event.formatRows = function(sheet, row, numRows, events) {
+  
+    var types = sheet.getRange(row,2,numRows).getValues();
+    var colors = types.map(type => new Array(23).fill(Event.TYPES_CONFIG[type[0]].color));
+  
     sheet.getRange(row, 1, numRows).setFontColor(Event.FORMATS.id_color);
-    sheet.getRange(row, 2, numRows, 22).setFontColor(Event.FORMATS.normal_color);
+    sheet.getRange(row, 2, numRows, 23).setFontColors(colors);
+  
+    if (events != null)
+      sheet.getRange(row, 1, numRows, 24).setBackgrounds(events.map(e => new Array(24).fill(e.background)));
+  
 
-    sheet.getRange(row, 10, numRows, 2).setHorizontalAlignment('center');
-    sheet.getRange(row, 13, numRows, 3).setHorizontalAlignment('center');
+    sheet.getRange(row, 10, numRows, 1).setHorizontalAlignment('center');
+    sheet.getRange(row, 12, numRows, 5).setHorizontalAlignment('center');
     sheet.getRange(row,9, numRows).setNumberFormat(Event.FORMATS.number_format);
-    sheet.getRange(row,16, numRows,8).setNumberFormat(Event.FORMATS.number_format);
+    sheet.getRange(row,17, numRows,8).setNumberFormat(Event.FORMATS.number_format);
 
   sheet.getRange(row, 2, numRows)
          .setDataValidation(
@@ -255,7 +262,7 @@ Event.formatRows = function(sheet, row, numRows) {
              .build());
     
     
-    sheet.getRange(row, 12, numRows)
+    sheet.getRange(row, 13, numRows)
          .setDataValidation(
            SpreadsheetApp.newDataValidation()
              .setAllowInvalid(false)
@@ -270,13 +277,23 @@ Event.ORIGINS = {
 }
 
 Event.TYPES = {
-      SELL: "Venta", 
+      SELL:  "Venta", 
       EXPENSE: "Gasto", 
       TAX: "Impuesto", 
       TAX_PAYED: "Adelanto Impuesto", 
       SALARY: "Salario", 
       INTEREST: "Interés", 
       LOAN: "Préstamo (capital)"
+    };
+
+Event.TYPES_CONFIG = {
+  "Venta":  {code: "SELL", name: "Venta", color: "#005500", light_color: "#ccffcc"}, 
+  "Gasto": {code: "EXPENSE", name: "Gasto", color: "#550000", light_color: "#ffcccc"}, 
+  "Impuesto": {code: "TAX", name: "Impuesto", color: "#550000", light_color: "#ffcccc"}, 
+  "Adelanto Impuesto": {code: "TAX_PAYED", name: "Adelanto Impuesto", color: "#550000", light_color: "#ffcccc"}, 
+  "Salario": {code: "SALARY", name: "Salario", color: "#550000", light_color: "#ffcccc"}, 
+  "Interés": {code: "INTEREST", name: "Interés", color: "#550000", light_color: "#ffcccc"}, 
+  "Préstamo (capital)": {code: "LOAN", name: "Préstamo (capital)", color: "#550000", light_color: "#ffcccc"}
     };
 
 Event.STATES = {

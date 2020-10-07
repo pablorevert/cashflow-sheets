@@ -208,7 +208,7 @@ function eventsSheetBuild(sheetName, events) {
 
     logStep("events-build-sheet", "Data writed");
 
-    Event.formatRows(sheet, 4, newRows);
+    Event.formatRows(sheet, 4, newRows, events);
 
     logStep("events-build-sheet", "Format made");
 

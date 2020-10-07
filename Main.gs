@@ -119,11 +119,11 @@ function readData() {
   readTable(data, "Mantenimientos", "A1:Z300", () => new MaitenanceEntry(data.customers), x => x.init(), "maitenance", "entries");
   readTable(data, "Salarios", "A1:Z300", () => new SalaryEntry(), x => x.init(), "salaries", "entries");
   
-  readTable(data, "Pendientes", "A2:W1000", () => new Event(), x => x.init(), "events");
-  readTable(data, "Facturados", "A2:W1000", () => new Event(), x => x.init(), "events");
-  readTable(data, "Cancelados", "A2:W1000", () => new Event(), x => x.init(), "events");
-  readTable(data, "Liquidados", "A2:W1000", () => new Event(), x => x.init(), "events");
-  readTable(data, "Historicos", "A2:W1000", () => new Event(), x => x.init(), "old_events");
+  readTable(data, "Pendientes", "A2:X1000", () => new Event(), x => x.init(), "events");
+  readTable(data, "Facturados", "A2:X1000", () => new Event(), x => x.init(), "events");
+  readTable(data, "Cancelados", "A2:X1000", () => new Event(), x => x.init(), "events");
+  readTable(data, "Liquidados", "A2:X1000", () => new Event(), x => x.init(), "events");
+  readTable(data, "Historicos", "A2:X1000", () => new Event(), x => x.init(), "old_events");
   
   var keys = new Set(data.events.map(x => x.id).concat(data.old_events.map(x => x.id)));
 
@@ -173,10 +173,10 @@ function updateMovements(add) {
   if (add!=null)
     events = events.concat(add);
   
-  treatResult(buildObjects("Pendientes", "A2:W1000", () => new Event(), x => x.init()), events, errors);
-  treatResult(buildObjects("Facturados", "A2:W1000", () => new Event(), x => x.init()), events, errors);
-  treatResult(buildObjects("Liquidados", "A2:W1000", () => new Event(), x => x.init()), events, errors);
-  treatResult(buildObjects("Cancelados", "A2:W1000", () => new Event(), x => x.init()), events, errors);
+  treatResult(buildObjects("Pendientes", "A2:X1000", () => new Event(), x => x.init()), events, errors);
+  treatResult(buildObjects("Facturados", "A2:X1000", () => new Event(), x => x.init()), events, errors);
+  treatResult(buildObjects("Liquidados", "A2:X1000", () => new Event(), x => x.init()), events, errors);
+  treatResult(buildObjects("Cancelados", "A2:X1000", () => new Event(), x => x.init()), events, errors);
   
   if (errors.length > 0)
     throw "Algunos registros están incompletos, por favor arreglelos y vuelva a intentar";
